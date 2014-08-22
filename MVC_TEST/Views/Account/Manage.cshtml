@@ -1,0 +1,65 @@
+﻿@model IEnumerable<MVC_TEST.Models.Account>
+@{
+    ViewBag.Title = "管理帳戶";
+}
+
+<h2>@ViewBag.Title</h2>
+<div id="update">
+    <input id="ID" type="hidden" value="@ViewData["id"].ToString()" />
+    <div>
+        <label class="control-label col-md-2">姓名</label>
+        <input class="text-box single-line valid" id="name" type="text" value="@ViewData["name"].ToString()">
+    </div>
+    <div>
+        <label class="control-label col-md-2">舊密碼</label>
+        <input class="text-box single-line valid" id="OldPassword" type="text" value="">
+    </div>
+    <div>
+        <label class="control-label col-md-2">新密碼</label>
+        <input class="text-box single-line valid" id="password" type="text" value="">
+    </div>
+    <div>
+        <label class="control-label col-md-2">電話</label>
+        <input class="text-box single-line valid" id="phone" type="text" value="@ViewData["phone"].ToString()">
+    </div>
+    <div>
+        <label class="control-label col-md-2">信箱</label>
+        <input class="text-box single-line valid" id="email" type="text" value="@ViewData["email"].ToString()">
+    </div>
+    <div>
+        <label class="control-label col-md-2">地址</label>
+        <input class="text-box single-line valid" id="address" type="text" value="@ViewData["address"].ToString()">
+    </div>
+
+    <div id="addAccountButton">
+        <input type="submit" value="更新" class="btn btn-default" onclick="UpdateData()">
+    </div>
+
+
+</div>
+<script>
+    function UpdateData() {
+        var name = $("#name").val();
+        var OldPassword = $("#OldPassword").val();
+        var password = $("#password").val();
+        var phone = $("#phone").val();
+        var email = $("#email").val();
+        var address = $("#address").val();
+        var id = $("#ID").val();
+        $.ajax({
+            url: "Update",
+            data: { id: id, name: name, OldPassword: OldPassword, password: password, phone: phone, email: email, address: address },
+            type: "POST",
+            dataType: 'text',
+            async: false,
+            success: function (msg) {
+                alert(msg);
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                alert(xhr.status);
+                alert(thrownError);
+            }
+        });
+
+    }
+</script>

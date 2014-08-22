@@ -1,0 +1,271 @@
+﻿@model IEnumerable<MVC_TEST.Models.Category>
+@{
+    ViewBag.Title = "ProductList";
+}
+
+<h2>商品管理</h2>
+
+<div>
+    <input type="submit" value="新增商品" class="btn btn-default" onclick="AddAccountClick()">
+</div>
+<div id='loadingmessage' style='display:none'>
+    <img src='../img/ajax-loader.gif' />
+</div>
+<div id="result">
+
+</div>
+<div id="Pagination" class="pagination">
+</div>
+<div id="update">
+    <div id="PIdLBL">
+        <label class="control-label col-md-2">商品編號</label>
+        <label id="PId"></label>
+    </div>
+    <div>
+        <label class="control-label col-md-2">商品名稱</label>
+        <input class="text-box single-line valid" id="Pname" type="text">
+    </div>
+    <div>
+        <label class="control-label col-md-2">照片</label>
+        <input class="text-box single-line" id="file" type="file" title="瀏覽">
+    </div>
+    <br />
+    <div>
+        <label class="control-label col-md-2">單價</label>
+        <input class="text-box single-line valid" id="price" type="text">
+    </div>
+    <div>
+        <label class="control-label col-md-2">數量</label>
+        <input class="text-box single-line valid" id="count" type="text">
+    </div>
+    <div>
+        <label class="control-label col-md-2">分類</label>
+
+        @Html.DropDownList("CategorySelectList", (SelectList)ViewBag.CategorySelectList)
+    </div>
+    <div id="updateButton">
+        <input type="submit" value="Save" class="btn btn-default" onclick="SaveClick('update')">
+        <input type="submit" value="Cancel" class="btn btn-default" onclick="Cancel()">
+    </div>
+    <div id="addAccountButton">
+        <input type="submit" value="Save" class="btn btn-default" onclick="SaveClick('addProduct')">
+        <input type="submit" value="Cancel" class="btn btn-default" onclick="Cancel()">
+    </div>
+
+
+</div>
+<script>
+    $(document).ready(function () {
+        // validTool();
+        $('#file').bootstrapFileInput();
+        $('#loadingmessage').show();
+        $("#update").hide();
+        DAOmode.GetDataList();
+        field1 = new ValidMode();
+        field1.valid_Init('valid', 'require', 'color:green;font-family: arial;font-size:large;', '../img/checkmark_small.gif');
+        field1.AddRegexPatern('price', /^\d+$/, '請輸入數字');
+        field1.AddRegexPatern('count', /^\d+$/, '請輸入數字');
+        field1.KeyPressInit();
+    });
+    var DAOmode = (function () {
+        return {
+            items_per_page_ForServer: 5,
+            Datas: [],
+            PagerConfig: {
+                items_per_page: 5,
+                num_display_entries: 5,
+                num_edge_entries: 2,
+                prev_text: "上一頁",
+                next_text: "下一頁",
+                callback: PageSelectCallback
+            },
+            GetDataList: function () {
+                $.ajax({
+                    url: "GetProductList",
+                    type: "GET",
+                    dataType: "json",
+                    success: function (data) {
+                        if (data.length != 0) {
+                            DAOmode.Datas.length = 0;
+                            DAOmode.Datas = data;
+                            $("#Pagination").pagination(DAOmode.Datas.length, DAOmode.PagerConfig);
+                        }
+                        else {
+                            alert('查無資料');
+                        }
+                        $('#loadingmessage').hide();
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        alert(xhr.status);
+                        alert(thrownError);
+                    }
+                });
+            },
+            InsertData: function (formData) {
+                $.ajax({
+                    url: "CreateProduct",
+                    data: formData,
+                    type: "POST",
+                    dataType: 'json',
+                    processData: false,
+                    contentType: false,
+                    async: false,
+                    success: function (msg) {
+                        alert(msg);
+                    },
+
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        alert(xhr.status);
+                        alert(thrownError);
+                    }
+                });
+
+            },
+            UpdateData: function (formData) {
+                $.ajax({
+                    url: "UpdateProduct",
+                    data: formData,
+                    type: "POST",
+                    dataType: 'json',
+                    processData: false,
+                    contentType: false,
+                    async: false,
+                    success: function (msg) {
+                        alert(msg);
+                    },
+
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        alert(xhr.status);
+                        alert(thrownError);
+                    }
+                });
+
+            },
+            DeleteData: function (ProductID) {
+                $.ajax({
+                    url: "DeleteProduct",
+                    data: { ProductID: ProductID },
+                    type: "POST",
+                    dataType: 'json',
+                    async: false,
+                    success: function (msg) {
+                        alert(msg);
+                        $("#update").hide();
+                    },
+
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        alert(xhr.status);
+                        alert(thrownError);
+                    }
+                });
+
+            }
+        };
+
+    })();
+    function PageSelectCallback(page_index, jq) {
+        // Get number of elements per pagionation page from form
+        var items_per_page = 5;
+        var max_elem = Math.min((page_index + 1) * items_per_page, DAOmode.Datas.length);
+        var newcontent = '';
+        var content = "<table class='table'><tr><th>商品編號</th><th>商品名稱</th><th>商品照片</th><th>商品單價</th><th>商品數量</th><th>分類</th><th></th></tr>"
+        for (var i = page_index * items_per_page; i < max_elem; i++) {
+            content += "<tr id='row'><td class='id'>" + DAOmode.Datas[i].ProductID + "</td>" +
+                             "<td class='Name'>" + DAOmode.Datas[i].Name + "</td>" +
+                             "<td class='ProductImage'><img src='/ProductImage/" + DAOmode.Datas[i].Image + "' width='42' height='42' value='" + DAOmode.Datas[i].Image + "' /></td>" +
+                             "<td  class='Price'>" + DAOmode.Datas[i].Price + "</td>" +
+                             "<td class='Count'>" + DAOmode.Datas[i].Count + "</td>" +
+                              "<td class='Category'>" + DAOmode.Datas[i].Category + "</td>" +
+                             '<td><a class="Edit" href="javascript:UpdateToogle(' + DAOmode.Datas[i].ProductID + ');">編輯</a>|' +
+                             '<a href="javascript:DeleteConfirm(' + DAOmode.Datas[i].ProductID + ');">刪除</a></td>' +
+                             "</tr>";
+        }
+        content += "</table>"
+        $("#result").html(content);
+        $('#loadingmessage').hide();
+
+        return false;
+    }
+    function DeleteConfirm(id) {
+        $("#OrderDetail").html('');
+        var result = confirm("Want to delete?");
+        if (result == true) {
+            DAOmode.DeleteData(id);
+            DAOmode.GetDataList();
+
+        }
+    }
+    $(document).on("click", ".Edit", function () {
+        var name = $(this).parent().parent().find(".Name").text();
+        var price = $(this).parent().parent().find(".Price").text();
+        var count = $(this).parent().parent().find(".Count").text();
+        var category = $(this).parent().parent().find(".Category").text();
+        var imageName=$(this).parent().parent().find(".ProductImage").children().attr('value')
+        $("#Pname").val(name);
+        $("#price").val(price);
+        $("#count").val(count);
+        $("#CategorySelectList").val(category);
+    });
+    function UpdateToogle(id) {
+        field1.ClearValid();
+        $("#PId").text(id);
+        $("#update").show();
+        $("#PIdLBL").show();
+        $("#updateButton").show();
+        $("#addAccountButton").hide();
+    }
+    function AddAccountClick() {
+        field1.ClearValid();
+        $("#Pname").val('');
+        $("#file").val('');
+        $("#price").val('');
+        $("#count").val('');
+        $("#category").val('');
+        $("#addAccountButton").show();
+        $("#update").show();
+        $("#PIdLBL").hide();
+        $("#updateButton").hide();
+    }
+    function Cancel() {
+        $("#update").hide();
+    }
+    function SaveClick(mode) {
+        var pid = $("#PId").text();
+        var name = $("#Pname").val();
+        var fileInput = document.getElementById('file');
+        var price = $("#price").val();
+        var count = $("#count").val();
+        var category = $('#CategorySelectList').val()
+        var formData = new FormData();
+
+
+        field1.ClearValid();
+        var pass = field1.runValid();
+        if (pass === true) {
+            if (mode == "update") {
+                formData.append("ProductID", pid);
+                formData.append("name", name);
+                formData.append("price", price);
+                formData.append("count", count);
+                formData.append("category", category);
+                formData.append("file", fileInput.files[0]);
+                DAOmode.UpdateData(formData);
+                $('.file-input-name').text('')
+                $('#file').val('');
+            }
+            else if (mode == "addProduct") {
+                formData.append("name", name);
+                formData.append("price", price);
+                formData.append("count", count);
+                formData.append("category", category);
+                formData.append("file", fileInput.files[0]);
+                DAOmode.InsertData(formData);
+                $('#file').val('');
+                $('.file-input-name').text('')
+            }
+            $("#update").hide();
+            DAOmode.GetDataList();
+        }
+
+    }
+</script>

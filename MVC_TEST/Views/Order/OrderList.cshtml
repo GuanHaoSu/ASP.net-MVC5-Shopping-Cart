@@ -1,0 +1,173 @@
+﻿
+@{
+    ViewBag.Title = "OrderList";
+}
+
+<h2>訂單查詢</h2>
+<input type="text" id="SearchText"/>   <input type="button" id="SearchButton" class="btn btn-default" value="搜尋"onclick="Search()" />
+<div id='loadingmessage' style='display:none'>
+    <img src='../img/ajax-loader.gif' />
+</div>
+<div id="result">
+
+</div>
+<div id="Pagination" class="pagination">
+</div>
+<div id="OrderDetail">
+
+</div>
+<script>
+    $(document).ready(function () {
+        // validTool();
+        $('#loadingmessage').show();
+
+        DAOmode.GetDataList();
+    });
+    var DAOmode = (function () {
+        return {
+            items_per_page_ForServer: 5,
+            Datas:[],
+            PagerConfig: {
+                items_per_page: 5,
+                num_display_entries: 5,
+                num_edge_entries: 2,
+                prev_text: "上一頁",
+                next_text: "下一頁",
+                callback: PageSelectCallback
+            },
+            GetDataList: function () {
+                $.ajax({
+                    url: "GetOrderList",
+                    type: "GET",
+                    dataType: "json",
+                    success: function (data) {                       
+                        if (data.length != 0) {
+                            DAOmode.Datas.length = 0;
+                            DAOmode.Datas = data;
+                            $("#Pagination").pagination(DAOmode.Datas.length, DAOmode.PagerConfig);
+                        }
+                        else {
+                            alert('查無資料');
+                        }
+                        $('#loadingmessage').hide();
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        alert(xhr.status);
+                        alert(thrownError);
+                    }
+                });
+            },
+            GetOrderListDetail: function (Id) {
+                var id = Id;
+                $.ajax({
+                    url: "GetOrderListDetail",
+                    data: { id: Id},
+                    type: "GET",
+                    dataType: 'json',
+                    async: false,
+                    success: function (data) {
+                        var content = "<table class='table'><tr><th>訂單編號</th><th>商品名稱</th><th>商品數量</th><th>金額</th></tr>"
+                        for (var i = 0; i < data.length; i++) {
+                            content += "<tr id='row'><td class='Pid'>" + data[i].id + "</td>" +
+                                             "<td class='ProductName'>" + data[i].ProductName + "</td>" +
+                                             "<td class='Count'>" + data[i].Count + "</td>" +
+                                             "<td  class='UnitSumPrice'>" + data[i].UnitSumPrice + "</td>" +
+                              
+                                             "</tr>";
+                        }
+                        content += "</table>"
+                        $("#OrderDetail").html(content).hide().fadeIn(500);
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        alert(xhr.status);
+                        alert(thrownError);
+                    }
+                });
+
+            },
+            DeleteData: function (Id) {
+                var id = Id;
+                $.ajax({
+                    url: "DeleteOrder",
+                    data: { id: Id },
+                    type: "POST",
+                    dataType: 'text',
+                    async: false,
+                    success: function (msg) {
+                        alert(msg);
+                    },
+
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        alert(xhr.status);
+                        alert(thrownError);
+                    }
+                });
+
+            },
+            SearchData: function (name) {
+                $.ajax({
+                    url: "SearchOrderByName",
+                    data: { name: name },
+                    type: "get",
+                    dataType: 'json',
+                    async: false,
+                    success: function (data) {
+                        if (data.length != 0) {
+                            DAOmode.Datas.length = 0;
+                            DAOmode.Datas = data;
+                            $("#Pagination").pagination(DAOmode.Datas.length, DAOmode.PagerConfig);
+                        }
+                        else {
+                            alert('查無資料');
+                        }
+                    },
+
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        alert(xhr.status);
+                        alert(thrownError);
+                    }
+                });
+
+            }
+        };
+
+    })();
+    function PageSelectCallback(page_index, jq) {
+        // Get number of elements per pagionation page from form
+        var items_per_page = 5;
+        var max_elem = Math.min((page_index + 1) * items_per_page, DAOmode.Datas.length);
+        var newcontent = '';
+        var content = "<table class='table'><tr><th>訂單編號</th><th>客戶名稱</th><th>Email</th><th>電話</th><th>地址</th><th>訂單總金額</th><th>日期</th><th></th></tr>"
+        for (var i = page_index * items_per_page; i < max_elem; i++) {
+            content += "<tr id='row'><td class='id'>" + DAOmode.Datas[i].id + "</td>" +
+                             "<td class='Name'>" + DAOmode.Datas[i].Name + "</td>" +
+                             "<td class='Email'>" + DAOmode.Datas[i].Email + "</td>" +
+                             "<td  class='Phone'>" + DAOmode.Datas[i].Phone + "</td>" +
+                              "<td  class='Address'>" + DAOmode.Datas[i].Address + "</td>" +
+                             "<td class='SumPrice'>" + DAOmode.Datas[i].SumPrice + "</td>" +
+                              "<td class='Date'>" + DAOmode.Datas[i].Date + "</td>" +
+                             '<td><a class="Edit" href="javascript:DAOmode.GetOrderListDetail(' + DAOmode.Datas[i].id + ');">訂單明細</a>|' +
+                             '<a href="javascript:DeleteConfirm(' + DAOmode.Datas[i].id + ');">刪除</a></td>' +
+                             "</tr>";
+        }
+        content += "</table>"
+        $("#result").html(content);
+        $('#loadingmessage').hide();
+       
+        return false;
+    }
+    function DeleteConfirm(id) {
+        $("#OrderDetail").html('');
+        var result = confirm("Want to delete?");
+        if (result == true) {
+            DAOmode.DeleteData(id);
+            DAOmode.GetDataList();
+
+        }
+    }
+    function Search() {
+        var name = $('#SearchText').val();
+        DAOmode.SearchData(name);
+        $("#OrderDetail").html('');
+    }
+</script>

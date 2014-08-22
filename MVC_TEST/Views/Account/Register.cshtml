@@ -1,0 +1,84 @@
+﻿
+@{
+    ViewBag.Title = "註冊";
+}
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "__AjaxAntiForgeryForm" }))
+{
+    @Html.AntiForgeryToken()
+}
+
+
+<script>
+    $(document).ready(function () {
+
+        field1 = new ValidMode();
+
+        field1.valid_Init('valid', 'require', 'color:green;font-family: arial;font-size:large;', '../img/checkmark_small.gif');
+        field1.AddRegexPatern('email', /^\w+((-\w+)|(\.\w+))*\@@[A-Za-z0-9]+((\.|-)[A-Za-z0-9]+)*\.[A-Za-z]+$/, '請輸入正確的電子郵件格式');
+        field1.AddRegexPatern('phone', /^([0-9]{10,10})$/, '請輸入十碼手機號碼');
+        field1.AddRegexPatern('password', /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])[0-9a-zA-Z]{8,}$/, '請輸入至少八位混合數字英文大小寫的密碼');
+        field1.KeyPressInit();
+    });
+    function InsertData(Name, Password, Phone, Email, Address) {
+        var form = $('#__AjaxAntiForgeryForm');
+        var token = $('input[name="__RequestVerificationToken"]').val();
+        $.ajax({
+            url: 'CreateAccountVerify',
+            data: { __RequestVerificationToken: token, name: Name, password: Password, phone: Phone, email: Email, address: Address },
+            type: "POST",
+            dataType: 'text',
+            async: false,
+            success: function (msg) {
+                alert(msg);
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                alert(xhr.status);
+                alert(thrownError);
+            }
+        });
+
+    }
+    function SaveClick(mode) {
+        var name = $("#name").val();
+        var password = $("#password").val();
+        var phone = $("#phone").val();
+        var email = $("#email").val();
+        var address = $("#address").val();
+        var id = $("#userId").text();
+        var pass = field1.runValid();
+        if (pass) {
+            if (mode == "addAccount") {
+                InsertData(name, password, phone, email, address);
+            }
+        }
+        }
+</script>
+<h2>@ViewBag.Title</h2>
+
+<div id="Register" data-url="@Url.Action("CreateAccount", "User")">
+    <div>
+        <label class="control-label col-md-2">姓名</label>
+        <input class="text-box single-line valid" id="name" type="text">
+    </div>
+    <div>
+        <label class="control-label col-md-2">密碼</label>
+        <input class="text-box single-line valid" id="password" type="text">
+    </div>
+    <div>
+        <label class="control-label col-md-2">電話</label>
+        <input class="text-box single-line valid" id="phone" type="text">
+    </div>
+    <div>
+        <label class="control-label col-md-2">信箱</label>
+        <input class="text-box single-line valid" id="email" type="text">
+    </div>
+    <div>
+        <label class="control-label col-md-2">地址</label>
+        <input class="text-box single-line valid" id="address" type="text">
+    </div>
+    <div id="addAccountButton">
+        <input type="submit" value="Save" class="btn btn-default" onclick="SaveClick('addAccount')">
+    </div>
+
+
+</div>

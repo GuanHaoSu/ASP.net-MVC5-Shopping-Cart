@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="ba9ec3d447c84744a58e6c1fbe77fcbb" Name="Diagram1" ZoomLevel="85">
+        <EntityTypeShape EntityType="DbTESTModel.Account" Width="1.5" PointX="1.125" PointY="0.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="DbTESTModel.AccountVerify" Width="1.5" PointX="3.75" PointY="0.5" />
+        <EntityTypeShape EntityType="DbTESTModel.OrderDetail" Width="1.5" PointX="3.875" PointY="4.25" />
+        <EntityTypeShape EntityType="DbTESTModel.Product" Width="1.5" PointX="6.5" PointY="4.625" />
+        <EntityTypeShape EntityType="DbTESTModel.Orders" Width="1.5" PointX="1" PointY="4.75" />
+        <EntityTypeShape EntityType="DbTESTModel.Category" Width="1.5" PointX="9.125" PointY="6.125" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>

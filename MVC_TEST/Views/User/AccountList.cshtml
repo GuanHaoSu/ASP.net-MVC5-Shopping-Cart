@@ -1,0 +1,293 @@
+﻿
+@{
+    ViewBag.Title = "AccountList";
+}
+
+<h2>人員清單</h2>
+<div>
+    <input type="submit" value="新增帳號" class="btn btn-default" onclick="AddAccountClick()">
+</div>
+<div id='loadingmessage' style='display:none'>
+    <img src='../img/ajax-loader.gif' />
+</div>
+<div id="result">
+
+</div>
+<div id="Pagination" class="pagination">
+</div>
+<div id="update">
+    <div id="userIdLBL">
+        <label class="control-label col-md-2">Id</label>
+        <label id="userId"></label>
+    </div>
+    <div>
+        <label class="control-label col-md-2" >姓名</label>
+        <input class="text-box single-line valid" id="name" type="text">
+    </div>
+    <div>
+        <label class="control-label col-md-2" >密碼</label>
+        <input class="text-box single-line valid" id="password" type="text">
+    </div>
+    <div>
+        <label class="control-label col-md-2" >電話</label>
+        <input class="text-box single-line valid" id="phone" type="text">
+    </div>
+    <div>
+        <label class="control-label col-md-2" >信箱</label>
+        <input class="text-box single-line valid" id="email" type="text">
+    </div>
+    <div>
+        <label class="control-label col-md-2">地址</label>
+        <input class="text-box single-line valid" id="address" type="text">
+    </div>
+    <div>
+        <label class="control-label col-md-2" >角色</label>
+        <input class="text-box single-line valid" id="roles" type="text">
+    </div>
+    <div id="updateButton">
+        <input type="submit" value="Save" class="btn btn-default" onclick="SaveClick('update')">
+        <input type="submit" value="Cancel" class="btn btn-default" onclick="Cancel()">
+    </div>
+    <div id="addAccountButton">
+        <input type="submit" value="Save" class="btn btn-default" onclick="SaveClick('addAccount')">
+        <input type="submit" value="Cancel" class="btn btn-default" onclick="Cancel()">
+    </div>
+        
+
+</div>
+<style>
+    input:-webkit-autofill {
+        -webkit-box-shadow: 0 0 0px 1000px white inset;
+    }
+</style>
+<script>
+    var DAOmode = (function () {
+        return {
+            items_per_page_ForServer: 5,
+            PagerConfig: {
+                items_per_page: 5,
+                num_display_entries: 5,
+                num_edge_entries: 2,
+                prev_text: "上一頁",
+                next_text: "下一頁",
+                callback: PageSelectCallback
+            },
+            GetDataList: function () {
+                $.ajax({
+                    url: "GetCount",
+                    type: "GET",
+                    dataType: "text",
+                    success: function (data) {
+                        Data = data;
+                        if (Data != 0) {
+                            $("#Pagination").pagination(Data, DAOmode.PagerConfig);
+                        }
+                        else {
+                            alert('查無資料');
+                        }
+                        $('#loadingmessage').hide();
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        alert(xhr.status);
+                        alert(thrownError);
+                    }
+                });
+            },
+            UpdateData: function (Id, Name, Password, Phone, Email, Roles, Address) {
+                var id = Id;
+                $.ajax({
+                    url: "UpdateAccount",
+                    data: { id: Id, name: Name, password: Password, phone: Phone, email: Email, roles: Roles, address: Address },
+                    type: "POST",
+                    dataType: 'text',
+                    async: false,
+                    success: function (msg) {
+                        alert(msg);
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        alert(xhr.status);
+                        alert(thrownError);
+                    }
+                });
+
+            },
+            InsertData: function (Name, Password, Phone, Email, Roles, Address) {
+                $.ajax({
+                    url: "CreateAccount",
+                    data: { name: Name, password: Password, phone: Phone, email: Email, roles: Roles, address: Address },
+                    type: "POST",
+                    dataType: 'text',
+                    async: false,
+                    success: function (msg) {
+                        alert(msg);
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        alert(xhr.status);
+                        alert(thrownError);
+                    }
+                });
+
+            },
+            DeleteData: function (Id) {
+                var id = Id;
+                $.ajax({
+                    url: "DeleteAccount",
+                    data: { id: Id },
+                    type: "POST",
+                    dataType: 'text',
+                    async: false,
+                    success: function (msg) {
+                        alert(msg);
+                    },
+
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        alert(xhr.status);
+                        alert(thrownError);
+                    }
+                });
+
+            }
+        };
+
+    })();
+
+
+
+    $(document).ready(function () {
+        // validTool();
+        $('#loadingmessage').show();
+        $("#update").hide();
+       // ValidMode.valid_Init();
+
+        field1 = new ValidMode();
+       
+        field1.valid_Init('valid', 'require', 'color:green;font-family: arial;font-size:large;', '../img/checkmark_small.gif');
+        field1.AddRegexPatern('email', /^\w+((-\w+)|(\.\w+))*\@@[A-Za-z0-9]+((\.|-)[A-Za-z0-9]+)*\.[A-Za-z]+$/, '請輸入正確的電子郵件格式');
+        field1.AddRegexPatern('phone', /^([0-9]{10,10})$/, '請輸入十碼手機號碼');
+        field1.AddRegexPatern('password', /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])[0-9a-zA-Z]{8,}$/, '請輸入至少八位混合數字英文大小寫的密碼');
+        field1.KeyPressInit();
+
+        field2 = new ValidMode();
+        field2.valid_Init('valid2', 'require', 'color:green;font-family: arial;font-size:large;', '../img/checkmark_small.gif');
+        field2.AddRegexPatern('email2', /^\w+((-\w+)|(\.\w+))*\@@[A-Za-z0-9]+((\.|-)[A-Za-z0-9]+)*\.[A-Za-z]+$/, '請輸入正確的電子郵件格式');
+        field2.AddRegexPatern('phone2', /^\d+$/, '請輸入正確的電話格式');
+        field2.KeyPressInit();
+        DAOmode.GetDataList();
+    });
+    $(document).on("click", ".Edit", function () {
+        var name = $(this).parent().parent().find(".name").text();
+        var password = $(this).parent().parent().find(".password").text();
+        var phone = $(this).parent().parent().find(".phone").text();
+        var email = $(this).parent().parent().find(".email").text();
+        var address = $(this).parent().parent().find(".address").text();
+        var roles = $(this).parent().parent().find(".roles").text();
+        $("#name").val(name);
+        $("#password").val(password);
+        $("#phone").val(phone);
+        $("#email").val(email);
+        $("#address").val(address);
+        $("#roles").val(roles);
+    });
+    function PageSelectCallback(page_index, jq) {
+        // Get number of elements per pagionation page from form
+        //var items_per_page = 5;
+        //var max_elem = Math.min((page_index + 1) * items_per_page, Data.length);
+        //var newcontent = '';
+        $.ajax({
+            url: "GetPage/",
+            type: "post",
+            dataType: "json",
+            data: { page: page_index, pageSize: DAOmode.items_per_page_ForServer },
+            success: function (data) {
+                var Data = data;
+                if (Data.length != 0) {
+                    var content = "<table class='table'><tr><th>姓名</th><th>密碼</th><th>電話</th><th>email</th><th>地址</th><th>角色</th><th>操作</th></tr>"
+                    for (var i = 0; i < Data.length; i++) {
+                        content += "<tr id='row'><td class='name'>" + Data[i].name + "</td>" +
+                            "<td class='password'>" + Data[i].password + "</td>" +
+                            "<td class='phone'>" + Data[i].phone + "</td>" +
+                            "<td  class='email'>" + Data[i].email + "</td>" +
+                            "<td  class='address'>" + Data[i].address + "</td>" +
+                            "<td class='roles'>" + Data[i].roles + "</td>" +
+                            '<td><a class="Edit" href="javascript:UpdateToogle(' + Data[i].id + ');">編輯</a>|' +
+                            '<a href="javascript:DeleteConfirm(' + Data[i].id + ');">刪除</a></td>' +
+                            "</tr>";
+                    }
+                    content += "</table>"
+                    $("#result").html(content);
+
+                }
+                else {
+                    alert('查無資料');
+                }
+                $('#loadingmessage').hide();
+            },
+
+            error: function (xhr, ajaxOptions, thrownError) {
+                alert(xhr.status);
+                alert(thrownError);
+            }
+        });
+        return false;
+    }
+
+
+    function DeleteConfirm(id) {
+        $("#update").hide();
+        var result = confirm("Want to delete?");
+        if (result == true) {
+            DAOmode.DeleteData(id);
+            DAOmode.GetDataList();
+
+        }
+    }
+    function UpdateToogle(id) {
+        field1.ClearValid();
+        $("#userId").text(id);
+        $("#update").show();
+        $("#userIdLBL").show();
+        $("#updateButton").show();
+        $("#addAccountButton").hide();
+    }
+    function AddAccountClick() {
+        field1.ClearValid();
+        $("#name").val('');
+        $("#password").val('');
+        $("#phone").val('');
+        $("#email").val('');
+        $("#roles").val('');
+        $("#addAccountButton").show();
+        $("#update").show();
+        $("#userIdLBL").hide();
+        $("#updateButton").hide();
+    }
+    function SaveClick(mode) {
+        var name = $("#name").val();
+        var password = $("#password").val();
+        var phone = $("#phone").val();
+        var email = $("#email").val();
+        var roles = $("#roles").val();
+        var address = $("#address").val();
+        var id = $("#userId").text();
+        field1.ClearValid();
+        var pass = field1.runValid();
+        if (pass === true) {
+            if (mode == "update") {
+                DAOmode.UpdateData(id, name, password, phone, email, roles, address);
+            }
+            else if (mode == "addAccount") {
+                DAOmode.InsertData(name, password, phone, email, roles, address);
+            }
+            $("#update").hide();
+            DAOmode.GetDataList();
+        }
+
+    }
+    function Cancel() {
+        $("#update").hide();
+    }
+
+   
+
+
+</script>

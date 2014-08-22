@@ -1,0 +1,98 @@
+﻿@model IEnumerable<MVC_TEST.Models.Product>
+
+@{
+    ViewBag.Title = "Home Page";
+}
+<div class="dropdown">
+    <ul class="nav nav-pills">
+        <li class="dropdown">
+            <a href="#" data-toggle="dropdown" class="dropdown-toggle">商品分類 <b class="caret"></b></a>
+            <ul class="dropdown-menu">
+                @foreach (var item in ViewData["category"] as IEnumerable<MVC_TEST.Models.Category>)
+                {
+                    <li ><a class="category" href="#">@item.categorys</a></li>
+                }
+            </ul>
+        </li>
+
+    </ul>
+</div>
+<div class="jumbotron">
+    <h1>Shopping Cart</h1>
+    <p class="lead">Open source shopping cart using ASP.NET MVC,HTML, CSS and JavaScript.</p>
+    <p><a href="http://asp.net" class="btn btn-primary btn-large">Learn more &raquo;</a></p>
+</div>
+
+
+<div class="row" id="ProductRows">
+    @foreach (var item in Model)
+    {
+        if (@item.Count != 0) { 
+        <div class="col-md-4">
+            <img src="@Url.Content(String.Format("~/ProductImage/{0}", item.Image))" width='202' height='202' />
+            <p>NT @item.Price $</p>
+            <input id="@item.Name" type="hidden" class="productId" value="@item.ProductID" />
+            <input type="button" value="Add to Cart" class="btn btn-default" onclick="stored('@item.Name','@item.ProductID','@item.Price','@item.Count')">
+        </div>
+         }
+    }
+</div>
+<script>
+    $('#cart').text('Cart('+localStorage.length+')');
+    function stored(name,id,price,count) {
+        var name = name;
+        var id = id;
+        var price=price;
+        var count=count;
+        var ProductInfor =id+';'+ name + ';' + price + ';' + count;
+        var added=false;
+
+        for(var i=0;i<localStorage.length;i++)
+        {
+            if(localStorage.key(i)==id)
+            {
+                alert('已加入購物車');
+                added =true;
+            }
+        }
+        if(added==false)
+        {
+            localStorage.setItem(id, ProductInfor);
+            $('#cart').text('Cart('+localStorage.length+')');
+        }
+
+    }
+
+    $(".category").on("click", function (e) {
+        GetOrderListDetail(this.text);
+
+    });
+    function GetOrderListDetail(Category) {
+
+        $.ajax({
+            url: "Home/GetProductByCategorys",
+            data: { Category: Category },
+            type: "GET",
+            dataType: 'json',
+            async: false,
+            success: function (data) {
+                var content = ""
+                for (var i = 0; i < data.length; i++) {
+
+                    content += '  <div class="col-md-4">' +
+                       ' <img src="ProductImage/' + data[i].Image + '" width="202" height="202" />' +
+                       ' <p>NT ' + data[i].Price + ' $</p>' +
+                       ' <input id="' + data[i].Name + 's" type="hidden" class="productId" value="' + data[i].ProductID + '" />' +
+                       ' <input type="button" value="Add to Cart" class="btn btn-default" onclick="stored(\'' + data[i].Name + '\',\'' + data[i].ProductID + '\',\'' + data[i].Price + '\',\'' + data[i].Count + '\')">' +
+                    '</div>';
+                }
+                $("#ProductRows").html(content).hide().fadeIn(500);
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                alert(xhr.status);
+                alert(thrownError);
+            }
+        });
+
+    }
+</script>

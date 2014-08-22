@@ -1,0 +1,165 @@
+﻿
+@{
+    ViewBag.Title = "Cart";
+}
+
+<h2>購物車</h2>
+
+<table class="table table-striped" id="CartTable">
+    <thead>
+        <tr>
+            <th>
+                商品編號
+            </th>
+            <th>
+                商品名稱
+            </th>
+            <th>
+                商品單價
+            </th>
+            <th>
+                商品數量
+            </th>
+            <th>
+                總價
+            </th>
+            <th>
+                
+            </th>
+        </tr>
+    </thead>
+    <tbody id="CartTableBody">
+       
+    </tbody>
+</table>
+<div id="OrderField">
+    此訂單金額為:<label id="SumLBL"></label>
+   
+</div>
+<input type="button" id="makeOrder"value="繼續結帳" class="btn btn-default" onclick="PreViewOrder()">
+<script type="text/javascript">
+    $(document).ready(function () {
+        LoadCart();
+        binding();
+    });
+
+    function binding() {
+        $(".CartDropDown").change(function (e) {
+            var price = parseInt($(this).closest('td').prev().text());
+            var count = $(this).val();
+            var sum = price * count;
+
+            $(this).closest('td').next().text(sum);
+            sumPrice();
+
+        });
+    }
+    function sumPrice() {
+        var ALlsum = 0;
+        var ItemArray = [];
+        for (var i = 0; i < localStorage.length; i++) {
+            ItemArray[i] = localStorage.getItem(localStorage.key(i)).split(";");
+            var itemid = parseInt(ItemArray[i][0]);
+            ALlsum += parseInt($('#' + itemid + ':eq(0)').find('.sumPrice').text());
+        }
+        $('#SumLBL').text(ALlsum);
+    }
+    function LoadCart() {
+        var ItemArray = [];
+        var keyArray = [];
+        var tableString = "";
+        var slength = localStorage.length;
+        if (localStorage.length == 0) {
+            $('#makeOrder').hide();
+        }
+        for (var i = 0; i < slength; i++) {
+            keyArray[i] = localStorage.key(i);
+        }       
+
+        for (var i = 0; i < slength; i++) {
+            
+            ItemArray[i] = localStorage.getItem(keyArray[i]).split(";");
+            var icount = parseInt(ItemArray[i][0]);
+            $.ajax({
+                url: "GetProductCount",
+                data: { id: icount },
+                type: "GET",
+                dataType: "json",
+                async: false,
+                success: function (data) {
+                    if (data[0].Count == 0) {
+                        localStorage.removeItem(icount);
+                    }
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    alert(xhr.status);
+                    alert(thrownError);
+                }
+            });
+        }
+        for (var i = 0; i < localStorage.length; i++) {
+            ItemArray[i] = localStorage.getItem(localStorage.key(i)).split(";");
+            var itemc = parseInt(ItemArray[i][3]);
+            var icount=parseInt(ItemArray[i][0]);
+            tableString += ' <tr id="' + ItemArray[i][0] + '"><td class="ProductID">' + ItemArray[i][0] + '</td><td class="ProductName">' + ItemArray[i][1] + '</td><td class="ProductPrice">' + ItemArray[i][2] + '</td><td class="ProductCount"><select class="CartDropDown">';
+            $.ajax({
+                url: "GetProductCount",
+                data: { id:icount},
+                type: "GET",
+                dataType: "json",
+                async: false,
+                success: function (data) {
+                    for (j = 1; j < data[0].Count+1; j++) {
+                        tableString += '<option value="' + j + '">' + j + '</option>';
+                    }
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    alert(xhr.status);
+                    alert(thrownError);
+                }
+            });
+
+           
+            
+            tableString += '</select></td><td class="sumPrice">' + ItemArray[i][2] + '</td><td>' +
+           '<input type="button" value="刪除" class="btn btn-default" onclick="DeleteConfirm(' + ItemArray[i][0] + ')"></td></tr>';
+        }
+
+        $('#CartTableBody').html(tableString);
+        $('#cart').text('Cart(' + localStorage.length + ')');
+        sumPrice();
+    }
+    function DeleteConfirm(id) {
+        var result = confirm("Want to delete?");
+        if (result == true) {
+            localStorage.removeItem(id);
+            $('#cart').text('Cart(' + localStorage.length + ')');
+            LoadCart();
+            binding();
+        }
+    }
+    function PreViewOrder() {
+
+        var ItemArray = [];
+        var previewstring = "";
+        for (var i = 0; i < localStorage.length; i++) {
+            ItemArray[i] = localStorage.getItem(localStorage.key(i)).split(";");
+            var itemid = parseInt(ItemArray[i][0]);
+            var name = $('#' + itemid + ':eq(0)').find('.ProductName').text();
+            var count = parseInt($('#' + itemid + ':eq(0)').find('.CartDropDown').val());
+            var sumPrice = $('#' + itemid + ':eq(0)').find('.sumPrice').text();
+            if (i != localStorage.length - 1) {
+                previewstring += itemid + ';' + name + ';' + count + ';' + sumPrice + '@@';
+            }
+            else {
+                previewstring += itemid + ';' + name + ';' + count + ';' + sumPrice;
+            }
+        }
+        var encodeString = btoa(previewstring);
+        var url = 'http://' + window.location.host + '/Order/OrderPreview?pstring=' + encodeString;
+        window.location = url;
+        //  alert(previewstring);
+
+    }
+</script>
+

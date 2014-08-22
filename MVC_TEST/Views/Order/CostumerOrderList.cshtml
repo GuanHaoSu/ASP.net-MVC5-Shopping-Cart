@@ -1,0 +1,66 @@
+﻿@model IEnumerable<MVC_TEST.Models.Orders>
+
+@{
+    ViewBag.Title = "訂單查詢";
+}
+
+<h2>訂單查詢</h2>
+<table class='table'>
+    <tr>
+        <th>訂單編號</th>
+        <th>客戶名稱</th>
+        <th>Email</th>
+        <th>電話</th>
+        <th>地址</th>
+        <th>訂單總金額</th>
+        <th>日期</th>
+        <th></th>
+    </tr>
+@foreach (var item in Model) {
+    <tr id='row'>
+        <td class='id'>@item.id</td>
+        <td class='Name'>@item.Name</td>
+        <td class='Email'>@item.Email</td>
+        <td class='Phone'>@item.Phone</td>
+        <td class='Address'>@item.Address</td>
+        <td class='SumPrice'>@item.SumPrice</td>
+        <td class='Date'>@item.Date</td>
+        <td>
+            <a class="Edit" href="javascript:GetOrderListDetail(@item.id);">訂單明細</a>
+        </td>
+    </tr>
+}
+</table>
+<div id="OrderDetail">
+
+</div>
+<script>
+    function GetOrderListDetail(Id) {
+        var id = Id;
+        $.ajax({
+            url: "GetOrderListDetail",
+            data: { id: Id},
+            type: "GET",
+            dataType: 'json',
+            async: false,
+            success: function (data) {
+                var content = "<table class='table'><tr><th>訂單編號</th><th>商品名稱</th><th>商品數量</th><th>金額</th></tr>"
+                for (var i = 0; i < data.length; i++) {
+                    content += "<tr id='row'><td class='Pid'>" + data[i].id + "</td>" +
+                                     "<td class='ProductName'>" + data[i].ProductName + "</td>" +
+                                     "<td class='Count'>" + data[i].Count + "</td>" +
+                                     "<td  class='UnitSumPrice'>" + data[i].UnitSumPrice + "</td>" +
+                              
+                                     "</tr>";
+                }
+                content += "</table>"
+                $("#OrderDetail").html(content).hide().fadeIn(500);
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                alert(xhr.status);
+                alert(thrownError);
+            }
+        });
+
+    }
+</script>

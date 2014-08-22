@@ -1,0 +1,136 @@
+﻿@model IEnumerable<MVC_TEST.Models.Category>
+@{
+    ViewBag.Title = "分類管理";
+}
+
+<h2>分類管理</h2>
+<div>
+    <input type="submit" value="新增分類" class="btn btn-default" onclick="AddClick()">
+</div>
+<div id='loadingmessage' style='display:none'>
+    <img src='../img/ajax-loader.gif' />
+</div>
+<div id="CateDiv">
+
+</div>
+
+
+<div id="update">
+    <div>
+        <label class="control-label col-md-2">分類名稱</label>
+        <input class="text-box single-line valid" id="Cname" type="text">
+    </div>
+    <div id="addButton">
+        <input type="submit" value="Save" class="btn btn-default" onclick="SaveClick('add')">
+        <input type="submit" value="Cancel" class="btn btn-default" onclick="Cancel()">
+    </div>
+</div>
+<script>
+    $(document).ready(function () {
+        // validTool();
+        field1 = new ValidMode();
+
+        field1.valid_Init('valid', 'require', 'color:green;font-family: arial;font-size:large;', '../img/checkmark_small.gif');
+        field1.KeyPressInit();
+        $('#loadingmessage').show();
+        $("#update").hide();
+        GetDataList();
+    });
+    function AddClick() {
+        field1.ClearValid();
+        $("#Cname").val('');
+
+        $("#addButton").show();
+        $("#update").show();
+    }
+    function Cancel() {
+        $("#update").hide();
+    }
+    function SaveClick(mode) {
+        var name = $("#Cname").val();
+
+        field1.ClearValid();
+        var pass = field1.runValid();
+        if (pass === true) {
+            if (mode == "add") {
+
+             InsertData(name);
+            }
+            $("#update").hide();
+           GetDataList();
+        }
+
+    }
+    function GetDataList() {
+        $.ajax({
+            url: "Category/GetCategorys",
+            type: "GET",
+            dataType: "json",
+            success: function (data) {
+                if (data.length != 0) {
+                    var content = "<table class='table'><tr><th>分類編號</th><th>分類名稱</th><th></th></tr>"
+                    for (var i = 0; i < data.length; i++) {
+                        content += "<tr id='row'><td class='Pid'>" + data[i].id + "</td>" +
+                        "<td class='ProductName'>" + data[i].categorys + "</td>" +
+                         '<td><a href="javascript:DeleteConfirm(' + data[i].id + ');">刪除</a></td>' +
+                                     "</tr>";
+                    }
+                    content += "</table>"
+                    $("#CateDiv").html(content).hide().fadeIn(500);
+                }
+                else {
+                    alert('查無資料');
+                }
+                $('#loadingmessage').hide();
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                alert(xhr.status);
+                alert(thrownError);
+            }
+        });
+    }
+    function DeleteConfirm(id) {
+        var result = confirm("Want to delete?");
+        if (result == true) {
+           DeleteData(id);
+           GetDataList();
+
+        }
+    }
+    function InsertData(Name) {
+        $.ajax({
+            url: "Category/Create",
+            data: { name: Name},
+            type: "POST",
+            dataType: 'text',
+            async: false,
+            success: function (msg) {
+                alert(msg);
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                alert(xhr.status);
+                alert(thrownError);
+            }
+        });
+
+    }
+    function DeleteData(Id) {
+        $.ajax({
+            url: "Category/DeleteCategory",
+            data: { id: Id },
+            type: "POST",
+            dataType: 'text',
+            async: false,
+            success: function (msg) {
+                alert(msg);
+            },
+
+            error: function (xhr, ajaxOptions, thrownError) {
+                alert(xhr.status);
+                alert(thrownError);
+            }
+        });
+
+    }
+    
+</script>
